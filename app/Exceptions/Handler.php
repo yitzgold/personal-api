@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
+use Illuminate\Http\Request;
+
 class Handler extends ExceptionHandler
 {
     /**
@@ -49,24 +51,24 @@ class Handler extends ExceptionHandler
      * @param  \Exception  $exception
      * @return \Illuminate\Http\Response
      */
-    // public function render($request, Exception $exception)
-    // {
-    //     //return parent::render($request, $exception);
-        
-    // }
+
     public function render($request, Exception $exception)
     {
-        if ($exception instanceof NotFoundHttpException) {
-            return response()->json(["error" => "not found"]);
-        }
-
-        if ($exception instanceof ModelNotFoundException) {
-            return response()->json(["error" => "model not found"]);
-
-        }
-
-        if ($exception instanceof MethodNotAllowedHttpException) {
-            return response()->json(["error" => "method not allowed"]);
+        //$t = NotFoundHttpException;
+        //var_dump($request);
+        if ($exception instanceof NotFoundHttpException ||
+                $exception instanceof MethodNotAllowedHttpException||
+                $exception instanceof ModelNotFoundException) {
+            return response()->json([
+                'errors' =>
+                [
+                    'status' => $exception instanceof ModelNotFoundException? 404 : $exception->getStatusCode(),
+                    'source' => [
+                        'pointer' => $request->url()
+                    ],
+                    'detail' => $exception->getMessage()
+                ]
+            ]);
         }
 
         return parent::render($request, $exception);

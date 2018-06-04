@@ -54,19 +54,41 @@ class Handler extends ExceptionHandler
 
     public function render($request, Exception $exception)
     {
-        //$t = NotFoundHttpException;
-        //var_dump($request);
-        if ($exception instanceof NotFoundHttpException ||
-                $exception instanceof MethodNotAllowedHttpException||
-                $exception instanceof ModelNotFoundException) {
+        if ($exception instanceof NotFoundHttpException) {
             return response()->json([
                 'errors' =>
                 [
-                    'status' => $exception instanceof ModelNotFoundException? 404 : $exception->getStatusCode(),
+                    'status' => $exception->getStatusCode(),
+                    'source' => [
+                        'pointer' => $request->url()
+                    ],
+                    'detail' => 'path not found'
+                ]
+            ]);
+        }
+         
+        if ($exception instanceof ModelNotFoundException) {
+            return response()->json([
+                'errors' =>
+                [
+                    'status' =>  404,
                     'source' => [
                         'pointer' => $request->url()
                     ],
                     'detail' => $exception->getMessage()
+                ]
+            ]);
+        }
+
+        if ($exception instanceof MethodNotAllowedHttpException) {
+            return response()->json([
+                'errors' =>
+                [
+                    'status' => $exception->getStatusCode(),
+                    'source' => [
+                        'pointer' => $request->url()
+                    ],
+                    'detail' => 'method not allowed'
                 ]
             ]);
         }
